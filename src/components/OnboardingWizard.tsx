@@ -47,7 +47,7 @@ interface WizardState {
 }
 
 const wStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
   @keyframes wiz-spin { to { transform: rotate(360deg); } }
   @keyframes wiz-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes wiz-pulse {
@@ -105,21 +105,22 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}` },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          max_tokens: 150,
+          model: 'openai/gpt-oss-120b',
+          max_tokens: 600,
+          reasoning_effort: 'low',
           messages: [
-            { role: 'system', content: `You are a warm, empathetic DeFi savings advisor for HoldFirm — a savings app for people facing inflation or currency risk anywhere in the world. You give short, personal, actionable advice. Never use bullet points. Always write in flowing paragraphs.` },
+            { role: 'system', content: `You are a warm, empathetic DeFi savings advisor for Pledge — a savings app for people facing inflation or currency risk anywhere in the world, built on Arc mainnet. You give short, personal, actionable advice. Never use bullet points. Always write in flowing paragraphs.` },
             { role: 'user', content: `A user answered 4 questions:
 1. Local currency: ${wizardState.currency?.country} (${wizardState.currency?.code}, inflation: ${wizardState.currency?.inflation})
 2. Inflation experience: ${wizardState.experience?.label} — ${wizardState.experience?.desc}
 3. Goal: ${wizardState.goal?.label} — ${wizardState.goal?.desc}
 4. Lock preference: ${wizardState.lockPref?.label} — ${wizardState.lockPref?.desc}
 
-HoldFirm modes:
-- NestSave: Simple USDC or EURC savings at 4-5% APY. Best for basic inflation protection with full flexibility.
-- DisciplineVault: Onchain lock for 30/60/90 days. Early withdrawers pay 4.5% penalty redistributed to committed savers. Best for discipline + earning from others.
+Pledge modes:
+- NestSave: Simple USDC savings via a Morpho vault on Arc. Best for basic inflation protection with full flexibility.
+- PledgeVault: Onchain lock for 30/60/90 days. Early withdrawers pay 4.5% penalty redistributed to committed savers. Best for discipline + earning from others.
 
-Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and specific. Para 1: Acknowledge their situation in one sentence and recommend NestSave or DisciplineVault. Para 2: What their savings look like in 90 days. No bullet points.` },
+Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and specific. Para 1: Acknowledge their situation in one sentence and recommend NestSave or PledgeVault. Para 2: What their savings look like in 90 days. No bullet points.` },
           ],
         }),
       })
@@ -136,7 +137,7 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
   const currentIndex = progressSteps.indexOf(step)
 
   const stepTitles: Record<string, { title: string; sub: string }> = {
-    currency: { title: "What's your local currency?", sub: 'HoldFirm works everywhere — pick the closest match' },
+    currency: { title: "What's your local currency?", sub: 'Pledge works everywhere — pick the closest match' },
     experience: { title: 'Has inflation hurt your savings?', sub: state.currency?.code === 'USD' || state.currency?.code === 'EUR' ? 'Currency risk affects everyone differently' : `${state.currency?.country ?? 'Your region'} has ${state.currency?.inflation} annual inflation` },
     goal: { title: "What's your main savings goal?", sub: "We'll recommend the best saving mode for you" },
     lock: { title: 'How long can you commit?', sub: 'Longer locks earn more from the penalty pool' },
@@ -148,17 +149,15 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
 
       <div style={{ backgroundColor: '#fefcf9', borderRadius: '24px', width: '100%', maxWidth: '520px', maxHeight: '95vh', overflowY: 'visible', border: '1px solid #e8e0d8', boxShadow: '0 32px 80px rgba(28,25,23,0.2), 0 8px 24px rgba(28,25,23,0.1)', fontFamily: "'Plus Jakarta Sans', sans-serif", animation: 'wiz-up 0.4s ease forwards', position: 'relative' }}>
 
-        {/* Amber+green gradient top bar */}
         <div style={{ height: '4px', background: 'linear-gradient(90deg, #f59e0b, #10b981)', borderRadius: '24px 24px 0 0' }} />
 
-        {/* Header */}
         <div style={{ padding: '22px 28px 18px', borderBottom: '1px solid #f0ebe3' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: currentIndex >= 0 ? '16px' : '0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #fef3c7, #d1fae5)', border: '1px solid #e8e0d8', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🤖</div>
               <div>
                 <div style={{ fontSize: '15px', fontWeight: 800, color: '#1c1917', letterSpacing: '-0.2px' }}>AI Strategy Advisor</div>
-                <div style={{ fontSize: '12px', color: '#78716c', marginTop: '1px', fontWeight: 500 }}>Powered by Llama 3.3</div>
+                <div style={{ fontSize: '12px', color: '#78716c', marginTop: '1px', fontWeight: 500 }}>Powered by Groq · GPT-OSS 120B</div>
               </div>
             </div>
             {currentIndex >= 0 && (
@@ -168,7 +167,6 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
             )}
           </div>
 
-          {/* Progress bar */}
           {currentIndex >= 0 && (
             <div style={{ display: 'flex', gap: '6px' }}>
               {progressSteps.map((s, i) => (
@@ -180,10 +178,8 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
           )}
         </div>
 
-        {/* Body */}
         <div style={{ padding: '22px 28px 28px' }}>
 
-          {/* Step heading */}
           {currentIndex >= 0 && (
             <div style={{ marginBottom: '18px', animation: 'wiz-fade 0.3s ease forwards' }}>
               <h3 style={{ fontSize: '22px', fontWeight: 400, color: '#1c1917', margin: '0 0 6px 0', fontFamily: 'Instrument Serif, Georgia, serif', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
@@ -195,7 +191,6 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
             </div>
           )}
 
-          {/* STEP 1: Currency picker */}
           {step === 'currency' && (
             <div>
               <div style={{ position: 'relative', marginBottom: '16px' }}>
@@ -223,7 +218,6 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
 
                 {dropdownOpen && (
                   <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 999999, backgroundColor: '#fefcf9', border: '1px solid #e8e0d8', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 20px 48px rgba(28,25,23,0.14), 0 4px 12px rgba(28,25,23,0.08)', maxHeight: '280px', overflowY: 'auto' }}>
-                    {/* Global section */}
                     <div style={{ padding: '8px 16px 5px', fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.8px', textTransform: 'uppercase', background: 'rgba(16,185,129,0.04)', borderBottom: '1px solid #f0ebe3' }}>
                       🌍 Global — Stable Currency
                     </div>
@@ -237,7 +231,6 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
                         <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, background: '#d1fae5', padding: '2px 8px', borderRadius: '20px' }}>Stable</span>
                       </button>
                     ))}
-                    {/* Local currencies section */}
                     <div style={{ padding: '8px 16px 5px', fontSize: '11px', fontWeight: 800, color: '#d97706', letterSpacing: '0.8px', textTransform: 'uppercase', borderBottom: '1px solid #f0ebe3' }}>
                       📍 High-Inflation Currencies
                     </div>
@@ -269,7 +262,6 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
             </div>
           )}
 
-          {/* STEP 2: Experience */}
           {step === 'experience' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', animation: 'wiz-fade 0.3s ease forwards' }}>
               {INFLATION_EXPERIENCES.map(e => (
@@ -281,7 +273,6 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
             </div>
           )}
 
-          {/* STEP 3: Goal */}
           {step === 'goal' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', animation: 'wiz-fade 0.3s ease forwards' }}>
               {GOALS.map(g => (
@@ -293,7 +284,6 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
             </div>
           )}
 
-          {/* STEP 4: Lock */}
           {step === 'lock' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', animation: 'wiz-fade 0.3s ease forwards' }}>
               {LOCK_PREFS.map(l => (
@@ -305,7 +295,6 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
             </div>
           )}
 
-          {/* LOADING */}
           {step === 'loading' && (
             <div style={{ textAlign: 'center', padding: '52px 20px', animation: 'wiz-fade 0.3s ease forwards' }}>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '32px' }}>
@@ -318,15 +307,13 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
             </div>
           )}
 
-          {/* RESULT */}
           {step === 'result' && (
             <div style={{ animation: 'wiz-fade 0.4s ease forwards' }}>
-              {/* Result header card */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px', padding: '16px 18px', background: 'linear-gradient(135deg, rgba(245,158,11,0.06), rgba(16,185,129,0.06))', border: '1px solid #e8e0d8', borderRadius: '14px' }}>
                 <span style={{ fontSize: '32px' }}>{state.currency?.flag}</span>
                 <div>
                   <p style={{ fontSize: '16px', fontWeight: 800, color: '#1c1917', margin: 0 }}>Your personalized strategy</p>
-                  <p style={{ fontSize: '12px', color: '#78716c', margin: '3px 0 0', fontWeight: 500 }}>Powered by Llama 3.3 · Based on your answers</p>
+                  <p style={{ fontSize: '12px', color: '#78716c', margin: '3px 0 0', fontWeight: 500 }}>Powered by Groq · Based on your answers</p>
                 </div>
               </div>
 
@@ -340,14 +327,12 @@ Write exactly 2 short paragraphs under 100 words total. Be warm, direct, and spe
                 </div>
               )}
 
-              {/* Tags */}
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '22px' }}>
                 {[state.currency?.country, state.goal?.label, state.lockPref?.label].filter(Boolean).map((tag, i) => (
                   <span key={i} style={{ background: '#faf6f0', color: '#44403c', fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '20px', border: '1px solid #e8e0d8' }}>{tag}</span>
                 ))}
               </div>
 
-              {/* Actions */}
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   onClick={() => { setStep('currency'); setState({ currency: null, experience: null, goal: null, lockPref: null }); setRecommendation(''); setError('') }}
