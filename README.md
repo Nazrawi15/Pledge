@@ -165,7 +165,7 @@ Main features
 
 The main savings product.
 
-Choose a lock period, deposit USDC, and earn from:
+Choose a lock period, deposit USDC and earn from:
 
 Morpho vault returns
 penalties from users who withdraw early
