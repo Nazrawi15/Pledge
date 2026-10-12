@@ -69,7 +69,7 @@ principal + vault returns + earned penalty rewards
 The whole process happens onchain through the PledgeVault contract.
 
 The main contract
-PledgeVault
+Pledgevault
 
 Address
 
